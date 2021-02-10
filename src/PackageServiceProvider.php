@@ -53,12 +53,14 @@ abstract class PackageServiceProvider extends ServiceProvider
                 ], "{$this->package->name}-views");
             }
 
+            $offset = 0;
             foreach ($this->package->migrationFileNames as $migrationFileName) {
                 if (! $this->migrationFileExists($migrationFileName)) {
                     $this->publishes([
-                        $this->package->basePath("/../database/migrations/{$migrationFileName}.php.stub") => database_path('migrations/' . now()->format('Y_m_d_His') . '_' . Str::finish($migrationFileName, '.php')),
+                        $this->package->basePath("/../database/migrations/{$migrationFileName}.php.stub") => database_path('migrations/' . $this->getDatePrefix($offset) . '_' . Str::finish($migrationFileName, '.php')),
                     ], "{$this->package->name}-migrations");
                 }
+                $offset++;
             }
 
             if ($this->package->hasTranslations) {
@@ -130,5 +132,15 @@ abstract class PackageServiceProvider extends ServiceProvider
         $reflector = new ReflectionClass(get_class($this));
 
         return dirname($reflector->getFileName());
+    }
+
+    /**
+     * Get the date prefix for the migration.
+     *
+     * @return string
+     */
+    protected function getDatePrefix(int $offset = 0)
+    {
+        return date('Y_m_d_His', time()+$offset);
     }
 }
